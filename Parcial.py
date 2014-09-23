@@ -28,10 +28,10 @@ def parcial(dirseq="",protalign=True,outputname="parcial",tupla="",outputnameali
     if protalign == True:
         arrayprotalign = _alinprot(finalarray)
 #transformamos al formato deseado por el user y lo enviamos a un archivo.
-    _outfile(matrizlimpia,outputname,outputformat)
+    _outfile(matrizlimpia,outputname)
 
     if protalign == True:
-    	_outfile(arrayprotalign,outputnamealign,outputformatalign)
+    	_outfile(arrayprotalign,outputnamealign)
                
             
         
