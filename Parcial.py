@@ -52,4 +52,4 @@ if __name__ == "__main__":
 #esto carga los argumentos en una variable    
     args = parser.parse_args()
 #esto envia los argumentos a la funcion parcial, coimo argumentos para la funcion.    
-    parcial(args.seqdir,args.formatseq,args.protalign,args.outputformat,args.outputname,args.tupla,args.outputnamealign,args.outputformatalign)
+    parcial(args.seqdir,args.protalign,args.outputname,args.tupla,args.outputnamealign)
