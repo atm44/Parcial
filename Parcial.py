@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
-def parcial(seqdir,protalign,outputname,tupla,outputnamealign,codon_table,binary,stops):
-
-    """This function cleans codon alignments by gaps and stop codons removal, allowing
+"""This function cleans codon alignments by gaps and stop codons removal, allowing
 	the user to select zones, generate a protein alignment and select output name and
 	format. 
 
@@ -24,7 +22,11 @@ def parcial(seqdir,protalign,outputname,tupla,outputnamealign,codon_table,binary
 	-outputnamealign- protein alignment file name
 	-codon_table- genetic code number (http://www.ncbi.nlm.nih.gov/Taxonomy/Utils/wprintgc.cgi)
 	-stops- c or d. "c" removes all the sequences with premature stop codons. "d" removes the columns of the aligment
-	that follows stop codons, including that codon.
+	that follows stop codons, including that codon."""
+
+def parcial(seqdir,protalign,outputname,tupla,outputnamealign,codon_table,binary,stops):
+
+    """This funtion take the arguments from the bash and send it to the diferent modules
 	 
 
 	>>> parcial("./examples/example.fasta",False,"alineamiento.fasta",None,"alineamientoprot.fasta",1,None,None)
@@ -44,6 +46,8 @@ def parcial(seqdir,protalign,outputname,tupla,outputnamealign,codon_table,binary
     from modules import outfile
     from modules import ID
     
+    if seqdir == None:
+        raise Exception("wrong argument -seqdir: it should be input.fasta or input.phylip, instead it was " + str(seqdir))
 
     if binary == None or "." in binary:
 	pass
@@ -64,24 +68,25 @@ def parcial(seqdir,protalign,outputname,tupla,outputnamealign,codon_table,binary
     array =Infile._input(seqdir)
 #We send it  to the cutting module
     
-    interestarray = Selectingbyzones._zoneselector(array,tupla,binary)
-    
+    nostops = removestops._remove_stops(array,codon_table,ID,stops)
+    nostopsarray = nostops[0]
+    ID = nostops[1]
 #We send it to the gap cleaner module
+    interestarray = Selectingbyzones._zoneselector(nostopsarray,tupla,binary)
     
-    nogapsarray = gap_cleaner._gap_cleaner(interestarray)
 #We send it to the sotp codones cleaner module
-    final = removestops._remove_stops(nogapsarray,codon_table,ID,stops)
+    final = gap_cleaner._gap_cleaner(interestarray)
     
 #Ir returns the alignment protein, when necessary
     if protalign == True:
-        arrayprotalign = alignproteins._Alignproteins(final[0],codon_table)   
+        arrayprotalign = alignproteins._Alignproteins(final,codon_table)   
 
 #The user transforms it into the desired format and this is sent to a file
     
-    outfile._outfile(final[0],outputname,final[1])
+    outfile._outfile(final,outputname,ID)
 
     if protalign == True:
-    	outfile._outfile(arrayprotalign,outputnamealign,final[1])
+    	outfile._outfile(arrayprotalign,outputnamealign,ID)
                
             
         
@@ -90,18 +95,23 @@ def parcial(seqdir,protalign,outputname,tupla,outputnamealign,codon_table,binary
 	
 
 if __name__ == "__main__":
+    
+	 
+
+	
     import argparse
 #These are the arguments that the program will take in
 
-    parser = argparse.ArgumentParser(description='Here goes the description of the program')
-    parser.add_argument('-seqdir',  type=str, help='input name')
-    parser.add_argument('-stops',  type=str, help='type of stops codons treatment')
-    parser.add_argument('-binarydir',  type=str, help='.txt that contains a 0 and 1 sequence to select zones of interest')
-    parser.add_argument('-protalign', action='store_const', const = True, default = False, help='if True will return cleaned protein aligment ')
-    parser.add_argument('-outputname', type=str, help='output name', default = "parcial.fasta")
-    parser.add_argument('-outputnamealign', type=str, help='output name for the protein alignment', default = "alignment.fasta")
-    parser.add_argument('-tupla', type=str, help='list of lists containing the zones of interest')
-    parser.add_argument('-codon_table', type=int, help='number of the codon table to use', default = 1)
+    parser = argparse.ArgumentParser(description="This function cleans codon alignments by gaps and stop codons removal, allowing the user to select zones, generate a protein alignment and select output name and format. 	Input file must be .fasta or .phylip alignment sequences. The function has two options to remove stops codons: the first one removes all the sequences	with more than one stop codon and the other one removes the position in all the sequences where a stop codon is found. By default the function doesn't remove stop codons. The function can make a zone selection for this the user introduce a 0 and 1 sequence as a plane file text (-binary name.txt). Finally, if the user wants the protein alignment(-protalign), the function will translate the codon alignment with the option of choosing a desired codon table or leaving the default one.")
+	
+    parser.add_argument('--seqdir',  type=str, help='input name example: -seqdir input.fasta')
+    parser.add_argument('--stops',  type=str, help='type of stops codons treatment "c" removes all the sequences with premature stop codons. "d" removes the columns of the aligment that follows stop codons, including that codon. example: -stops c')
+    parser.add_argument('--binarydir',  type=str, help='.txt that contains a 0 and 1 sequence to select zones of interest example: -binary file.txt')
+    parser.add_argument('--protalign', action='store_const', const = True, default = False, help='if True will return cleaned protein aligment ')
+    parser.add_argument('--outputname', type=str, default = "parcial.fasta", help="output name. example: -outputname output.fasta")
+    parser.add_argument('--outputnamealign', type=str, default = "alignment.fasta", help = "output name for the alignment. example: -outputnamealign alignoutput.fasta")
+    parser.add_argument('--tupla', type=str, help='list of lists containing the zones of interest, example: [[3,9],[30,333]]')
+    parser.add_argument('--codon_table', type=int, default = 1,help="codon table number, for default its 1. example: -codon_table 11")
 #This fits the arguments into a variable    
     args = parser.parse_args()
     args.tupla = None
